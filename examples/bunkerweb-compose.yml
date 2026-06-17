@@ -1,0 +1,26 @@
+# The hardened edge, as code. BunkerWeb (nginx + ModSecurity + OWASP CRS) terminates TLS and
+# fronts the static site — WAF, automatic Let's Encrypt, security headers, and per-IP rate
+# limiting all turned on by configuration, not afterthought.
+services:
+  bunkerweb:
+    image: bunkerity/bunkerweb:1.6.1
+    ports:
+      - "80:8080"
+      - "443:8443"
+    volumes:
+      - ./site:/var/www/html:ro        # the built ./dist, served read-only
+    environment:
+      SERVER_NAME: "example.com"
+      AUTO_LETS_ENCRYPT: "yes"         # automatic TLS + renewal
+      USE_MODSECURITY: "yes"           # WAF on
+      USE_MODSECURITY_CRS: "yes"       # OWASP Core Rule Set
+      USE_LIMIT_REQ: "yes"             # per-IP rate limiting
+      LIMIT_REQ_RATE: "10r/s"
+      USE_GZIP: "yes"
+      # Security headers — HSTS/CSP/nosniff applied to every response
+      STRICT_TRANSPORT_SECURITY: "max-age=63072000; includeSubDomains; preload"
+      CONTENT_SECURITY_POLICY: "default-src 'self'"
+      X_CONTENT_TYPE_OPTIONS: "nosniff"
+    restart: unless-stopped
+# NOTE: the per-IP rate limit will 403 your OWN probes from a shared egress IP — verify the
+# site from off-network, or you'll chase phantom blocks. (Learned that the hard way.)

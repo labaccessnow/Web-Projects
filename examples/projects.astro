@@ -1,0 +1,20 @@
+---
+// Render the typed `projects` collection defined in content.config.ts, newest first.
+// getCollection is the read side of the Content Layer — fully resolved at build time, so
+// this page ships as static HTML with zero client JS.
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('projects'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+<ul class="projects">
+  {projects.map((p) => (
+    <li>
+      <a href={`/projects/${p.id}/`}>{p.data.title}</a>
+      <time datetime={p.data.date.toISOString()}>
+        {p.data.date.toLocaleDateString()}
+      </time>
+      {p.data.tags.map((t) => <span class="tag">{t}</span>)}
+    </li>
+  ))}
+</ul>

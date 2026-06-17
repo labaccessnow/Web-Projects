@@ -1,0 +1,29 @@
+# Push-to-deploy: a commit to main builds the site and rsyncs the output to the self-hosted
+# edge over SSH. No container rebuild; rollback is just redeploying a previous commit.
+# Host/user/key live in repo secrets — never in the workflow.
+name: deploy
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build            # -> ./dist (static)
+
+      - name: Configure SSH
+        run: |
+          install -m 600 -D /dev/stdin ~/.ssh/id_ed25519 <<< "${{ secrets.DEPLOY_SSH_KEY }}"
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Rsync to edge
+        run: |
+          rsync -az --delete ./dist/ \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/srv/sites/example/"

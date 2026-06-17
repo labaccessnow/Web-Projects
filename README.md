@@ -3,6 +3,21 @@
 Static / Jamstack sites delivered behind a hardened, self-hosted edge. I treat the edge — WAF,
 TLS, headers — as part of the project, not someone else's problem.
 
+## What's in this repo
+Runnable examples — the build, the content layer, the deploy, and the hardened edge:
+
+| File | What it shows |
+|---|---|
+| [`examples/astro.config.mjs`](examples/astro.config.mjs) | Astro static build config (sitemap, hashed assets) |
+| [`examples/content.config.ts`](examples/content.config.ts) | **Typed content collection** (Astro 5 Content Layer) |
+| [`examples/projects.astro`](examples/projects.astro) | The read side — render the collection to **zero-JS HTML** |
+| [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) | **Push-to-deploy** — build + `rsync` to the edge over SSH |
+| [`examples/bunkerweb-compose.yml`](examples/bunkerweb-compose.yml) | The **hardened edge** — BunkerWeb WAF + TLS + rate limit, as code |
+| [`examples/security-headers.conf`](examples/security-headers.conf) | HSTS / CSP / nosniff headers |
+
+> Placeholders throughout; deploy host/user/key come from repo secrets — nothing sensitive
+> is committed.
+
 ## What it looks like in practice
 
 Astro 5's Content Layer API, defining a typed content collection from local files:
